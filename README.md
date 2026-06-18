@@ -164,7 +164,6 @@ Prompts live in `app/services/templates.py`, separate from route logic, so they 
 
 - ✅ **Minimal frontend** — a single-page HTML/JS console (`frontend/index.html`, served at `/app`) for classifying and rewriting emails without touching `curl` or Swagger.
 - ✅ **Logging & error handling** — structured request logging, rotating file logs, and dedicated exception handlers for LLM vs. unexpected errors.
-- ⬜ Dockerized setup — not included in this submission.
 
 ---
 
