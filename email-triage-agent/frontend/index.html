@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Smart Email AI &middot; Console</title>
+<style>
+  :root{
+    --ink:#16191c;
+    --paper:#f6f4ee;
+    --rule:#d9d4c6;
+    --work:#2f5d8a;
+    --personal:#7a4f9e;
+    --finance:#2f7a4f;
+    --spam:#a83232;
+    --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+    --sans: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.5;
+  }
+  .wrap{
+    max-width:880px;
+    margin:0 auto;
+    padding:48px 24px 80px;
+  }
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:14px;
+    margin-bottom:36px;
+  }
+  .brand{
+    font-family:var(--mono);
+    font-size:13px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:#6b6557;
+  }
+  h1{
+    font-size:26px;
+    font-weight:700;
+    margin:4px 0 0;
+    letter-spacing:-0.01em;
+  }
+  .status{
+    font-family:var(--mono);
+    font-size:12px;
+    color:#6b6557;
+    text-align:right;
+  }
+  .status .dot{
+    display:inline-block;
+    width:7px;height:7px;
+    border-radius:50%;
+    background:#9c9582;
+    margin-right:6px;
+  }
+  .status.online .dot{background:var(--finance);}
+  .status.offline .dot{background:var(--spam);}
+
+  .panel{
+    background:#fff;
+    border:1px solid var(--rule);
+    border-radius:3px;
+    padding:28px;
+    margin-bottom:28px;
+  }
+  .panel-label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:#8a8470;
+    margin-bottom:16px;
+  }
+  textarea{
+    width:100%;
+    min-height:140px;
+    font-family:var(--mono);
+    font-size:13.5px;
+    line-height:1.6;
+    padding:14px;
+    border:1px solid var(--rule);
+    border-radius:2px;
+    resize:vertical;
+    background:#fcfbf8;
+    color:var(--ink);
+  }
+  textarea:focus, select:focus, button:focus-visible{
+    outline:2px solid var(--work);
+    outline-offset:1px;
+  }
+  .row{
+    display:flex;
+    gap:14px;
+    margin-top:16px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+  select{
+    font-family:var(--sans);
+    font-size:14px;
+    padding:9px 12px;
+    border:1px solid var(--rule);
+    border-radius:2px;
+    background:#fff;
+    color:var(--ink);
+  }
+  button{
+    font-family:var(--sans);
+    font-weight:600;
+    font-size:14px;
+    padding:10px 20px;
+    border:1px solid var(--ink);
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:2px;
+    cursor:pointer;
+    transition:background 0.15s ease, color 0.15s ease;
+  }
+  button:hover{background:#000;}
+  button:disabled{
+    opacity:0.45;
+    cursor:not-allowed;
+  }
+  button.secondary{
+    background:transparent;
+    color:var(--ink);
+  }
+  button.secondary:hover{background:#efeade;}
+
+  .result{
+    margin-top:18px;
+    display:none;
+  }
+  .result.visible{display:block;}
+
+  .tag{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-family:var(--mono);
+    font-size:13px;
+    font-weight:600;
+    padding:7px 14px;
+    border-radius:2px;
+    letter-spacing:0.02em;
+  }
+  .tag::before{content:"";width:8px;height:8px;border-radius:50%;}
+  .tag.Work{background:#e8eff7;color:var(--work);}
+  .tag.Work::before{background:var(--work);}
+  .tag.Personal{background:#f1eaf6;color:var(--personal);}
+  .tag.Personal::before{background:var(--personal);}
+  .tag.Finance{background:#e8f3ec;color:var(--finance);}
+  .tag.Finance::before{background:var(--finance);}
+  .tag.Spam{background:#f7e9e9;color:var(--spam);}
+  .tag.Spam::before{background:var(--spam);}
+
+  .rewrite-output{
+    font-family:var(--mono);
+    font-size:13.5px;
+    line-height:1.65;
+    white-space:pre-wrap;
+    background:#fcfbf8;
+    border:1px solid var(--rule);
+    border-left:3px solid var(--ink);
+    padding:16px;
+    margin-top:4px;
+    border-radius:2px;
+  }
+  .error{
+    margin-top:14px;
+    font-family:var(--mono);
+    font-size:13px;
+    color:var(--spam);
+    background:#fbeeee;
+    border:1px solid #e3c4c4;
+    padding:12px 14px;
+    border-radius:2px;
+    display:none;
+  }
+  .error.visible{display:block;}
+
+  .spinner{
+    display:inline-block;
+    width:13px;height:13px;
+    border:2px solid #948f7d;
+    border-top-color:var(--paper);
+    border-radius:50%;
+    animation:spin 0.7s linear infinite;
+    margin-right:8px;
+    vertical-align:-2px;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  footer{
+    margin-top:40px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:#9c9582;
+    text-align:center;
+  }
+
+  @media (max-width:560px){
+    .wrap{padding:28px 16px 60px;}
+    header{flex-direction:column;gap:10px;align-items:flex-start;}
+    .status{text-align:left;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="brand">email-ai-service</div>
+      <h1>Classifier &amp; Rewriter Console</h1>
+    </div>
+    <div class="status" id="status"><span class="dot"></span>checking&hellip;</div>
+  </header>
+
+  <section class="panel">
+    <div class="panel-label">01 &middot; Classify</div>
+    <textarea id="classify-input" placeholder="Paste an email to sort it into Work, Personal, Finance, or Spam&hellip;"></textarea>
+    <div class="row">
+      <button id="classify-btn">Classify email</button>
+      <button class="secondary" id="classify-sample">Load sample</button>
+    </div>
+    <div class="error" id="classify-error"></div>
+    <div class="result" id="classify-result">
+      <span class="tag" id="classify-tag"></span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-label">02 &middot; Rewrite</div>
+    <textarea id="rewrite-input" placeholder="Paste an email to rewrite in a different tone&hellip;"></textarea>
+    <div class="row">
+      <select id="tone-select">
+        <option value="professional">Professional</option>
+        <option value="friendly">Friendly</option>
+        <option value="formal">Formal</option>
+        <option value="concise">Concise</option>
+        <option value="apologetic">Apologetic</option>
+        <option value="custom">Custom&hellip;</option>
+      </select>
+      <input type="text" id="tone-custom" placeholder="enter tone" style="display:none; font-family:var(--sans); font-size:14px; padding:9px 12px; border:1px solid var(--rule); border-radius:2px;" />
+      <button id="rewrite-btn">Rewrite email</button>
+      <button class="secondary" id="rewrite-sample">Load sample</button>
+    </div>
+    <div class="error" id="rewrite-error"></div>
+    <div class="result" id="rewrite-result">
+      <div class="panel-label" style="margin-top:18px;">Result &middot; <span id="rewrite-tone-label"></span></div>
+      <div class="rewrite-output" id="rewrite-output"></div>
+    </div>
+  </section>
+
+  <footer>FastAPI &middot; Groq API &middot; build for Gen-AI Internship Case Study</footer>
+</div>
+
+<script>
+const API_BASE = "http://127.0.0.1:8000";
+async function checkHealth() {
+  const el = document.getElementById("status");
+  try {
+    const res = await fetch(`${API_BASE}/`);
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    el.className = "status online";
+    el.innerHTML = `<span class="dot"></span>online &middot; ${data.llm_provider}`;
+  } catch {
+    el.className = "status offline";
+    el.innerHTML = `<span class="dot"></span>backend unreachable`;
+  }
+}
+checkHealth();
+
+function setLoading(btn, loading, label) {
+  btn.disabled = loading;
+  btn.innerHTML = loading ? `<span class="spinner"></span>${label}` : label;
+}
+
+// --- Classify ---
+document.getElementById("classify-sample").addEventListener("click", () => {
+  document.getElementById("classify-input").value =
+    "Hi, this is Sarah from Accounts Payable. Your invoice #4521 for $1,240.00 is due on June 28th. Please confirm receipt and let us know if you have questions about the payment schedule.";
+});
+
+document.getElementById("classify-btn").addEventListener("click", async () => {
+  const input = document.getElementById("classify-input").value.trim();
+  const errorEl = document.getElementById("classify-error");
+  const resultEl = document.getElementById("classify-result");
+  const tagEl = document.getElementById("classify-tag");
+  const btn = document.getElementById("classify-btn");
+
+  errorEl.classList.remove("visible");
+  resultEl.classList.remove("visible");
+
+  if (!input) {
+    errorEl.textContent = "Paste an email first.";
+    errorEl.classList.add("visible");
+    return;
+  }
+
+  setLoading(btn, true, "Classify email");
+  try {
+    const res = await fetch(`${API_BASE}/classify_email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email_content: input }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Classification failed.");
+
+    tagEl.textContent = data.category;
+    tagEl.className = `tag ${data.category}`;
+    resultEl.classList.add("visible");
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.classList.add("visible");
+  } finally {
+    setLoading(btn, false, "Classify email");
+  }
+});
+
+// --- Rewrite ---
+const toneSelect = document.getElementById("tone-select");
+const toneCustom = document.getElementById("tone-custom");
+toneSelect.addEventListener("change", () => {
+  toneCustom.style.display = toneSelect.value === "custom" ? "inline-block" : "none";
+});
+
+document.getElementById("rewrite-sample").addEventListener("click", () => {
+  document.getElementById("rewrite-input").value =
+    "hey can u send me the report asap, kinda need it like right now for the meeting";
+});
+
+document.getElementById("rewrite-btn").addEventListener("click", async () => {
+  const input = document.getElementById("rewrite-input").value.trim();
+  const tone = toneSelect.value === "custom" ? toneCustom.value.trim() : toneSelect.value;
+  const errorEl = document.getElementById("rewrite-error");
+  const resultEl = document.getElementById("rewrite-result");
+  const outputEl = document.getElementById("rewrite-output");
+  const toneLabelEl = document.getElementById("rewrite-tone-label");
+  const btn = document.getElementById("rewrite-btn");
+
+  errorEl.classList.remove("visible");
+  resultEl.classList.remove("visible");
+
+  if (!input) {
+    errorEl.textContent = "Paste an email first.";
+    errorEl.classList.add("visible");
+    return;
+  }
+  if (!tone) {
+    errorEl.textContent = "Enter a custom tone or pick one from the list.";
+    errorEl.classList.add("visible");
+    return;
+  }
+
+  setLoading(btn, true, "Rewrite email");
+  try {
+    const res = await fetch(`${API_BASE}/rewrite_email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email_content: input, tone }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Rewrite failed.");
+
+    toneLabelEl.textContent = data.tone;
+    outputEl.textContent = data.rewritten_email;
+    resultEl.classList.add("visible");
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.classList.add("visible");
+  } finally {
+    setLoading(btn, false, "Rewrite email");
+  }
+});
+</script>
+</body>
+</html>
